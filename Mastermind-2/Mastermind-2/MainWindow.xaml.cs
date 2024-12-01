@@ -28,7 +28,8 @@ namespace Mastermind_PE
         private DispatcherTimer timer;
         DateTime clicked;
         TimeSpan elapsedTime;
-
+        string feedback ="";
+        string[,] Historiek = new string[10, 5];
         public MainWindow()
         {
             InitializeComponent();
@@ -103,32 +104,53 @@ namespace Mastermind_PE
 
             if (attempts >= 10)
             {
-
                 timer.Stop();
                 Close();
             }
 
+            string Kleur1 = ComboBox1.SelectedItem.ToString();
+            string Kleur2 = ComboBox2.SelectedItem.ToString();
+            string Kleur3 = ComboBox3.SelectedItem.ToString();
+            string Kleur4 = ComboBox4.SelectedItem.ToString();
 
+            // Reset feedback for the current attempt
+            feedback = "";
 
+            // Store the user's selection in the history array
+            if (attempts <= 10)
+            {
+                Historiek[attempts - 1, 0] = Kleur1;
+                Historiek[attempts - 1, 1] = Kleur2;
+                Historiek[attempts - 1, 2] = Kleur3;
+                Historiek[attempts - 1, 3] = Kleur4;
+            }
 
-
-
-
-
-
-            // Haal de geselecteerde kleuren op
+            // Process the feedback
             string[] userCode = {
-            ComboBox1.SelectedItem as string,
-            ComboBox2.SelectedItem as string,
-            ComboBox3.SelectedItem as string,
-            ComboBox4.SelectedItem as string
-        };
+        ComboBox1.SelectedItem as string,
+        ComboBox2.SelectedItem as string,
+        ComboBox3.SelectedItem as string,
+        ComboBox4.SelectedItem as string
+    };
 
-            // Controleer elke invoer en stel de randkleur in
             CheckColor(Label1, userCode[0], 0);
             CheckColor(Label2, userCode[1], 1);
             CheckColor(Label3, userCode[2], 2);
             CheckColor(Label4, userCode[3], 3);
+
+            // Store feedback in the history array
+            if (attempts <= 10)
+            {
+                Historiek[attempts - 1, 4] = feedback;
+            }
+
+            // Update the ListBox with the history
+            ListBoxHistoriek.Items.Clear();
+            for (int i = 0; i < attempts; i++)
+            {
+                string feedbackString = $"{Historiek[i, 0]}, {Historiek[i, 1]}, {Historiek[i, 2]}, {Historiek[i, 3]} -> {Historiek[i, 4]}";
+                ListBoxHistoriek.Items.Add(feedbackString);
+            }
         }
 
         private void CheckColor(System.Windows.Controls.Label label, string selectedColor, int position)
@@ -136,16 +158,19 @@ namespace Mastermind_PE
             if (selectedColor == generatedCode[position])
             {
                 label.BorderBrush = new SolidColorBrush(Colors.DarkRed);
+                feedback += "R ";
                 label.BorderThickness = new Thickness(3);
             }
             else if (generatedCode.Contains(selectedColor))
             {
                 label.BorderBrush = new SolidColorBrush(Colors.Wheat);
+                feedback += "W ";
                 label.BorderThickness = new Thickness(3);
             }
             else
             {
                 label.BorderBrush = Brushes.Transparent;
+                feedback += "/ ";
                 label.BorderThickness = new Thickness(0);
             }
         }
