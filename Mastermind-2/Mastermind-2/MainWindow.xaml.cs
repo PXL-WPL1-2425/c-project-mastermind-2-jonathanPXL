@@ -30,6 +30,7 @@ namespace Mastermind_PE
         TimeSpan elapsedTime;
         string feedback ="";
         string[,] Historiek = new string[10, 5];
+        private int score = 100;
         public MainWindow()
         {
             InitializeComponent();
@@ -105,6 +106,7 @@ namespace Mastermind_PE
             if (attempts >= 10)
             {
                 timer.Stop();
+                MessageBox.Show("Je hebt 10 pogingen gebruikt! Spel voorbij.");
                 Close();
             }
 
@@ -113,19 +115,11 @@ namespace Mastermind_PE
             string Kleur3 = ComboBox3.SelectedItem.ToString();
             string Kleur4 = ComboBox4.SelectedItem.ToString();
 
-            // Reset feedback for the current attempt
+            // Reset feedback en score reductie
             feedback = "";
+            int penalty = 0;
 
-            // Store the user's selection in the history array
-            if (attempts <= 10)
-            {
-                Historiek[attempts - 1, 0] = Kleur1;
-                Historiek[attempts - 1, 1] = Kleur2;
-                Historiek[attempts - 1, 2] = Kleur3;
-                Historiek[attempts - 1, 3] = Kleur4;
-            }
-
-            // Process the feedback
+            // Haal de geselecteerde kleuren op
             string[] userCode = {
         ComboBox1.SelectedItem as string,
         ComboBox2.SelectedItem as string,
@@ -133,45 +127,60 @@ namespace Mastermind_PE
         ComboBox4.SelectedItem as string
     };
 
-            CheckColor(Label1, userCode[0], 0);
-            CheckColor(Label2, userCode[1], 1);
-            CheckColor(Label3, userCode[2], 2);
-            CheckColor(Label4, userCode[3], 3);
+            // Controleer elke invoer en stel de randkleur en score reductie in
+            penalty += CheckColorAndCalculatePenalty(Label1, userCode[0], 0);
+            penalty += CheckColorAndCalculatePenalty(Label2, userCode[1], 1);
+            penalty += CheckColorAndCalculatePenalty(Label3, userCode[2], 2);
+            penalty += CheckColorAndCalculatePenalty(Label4, userCode[3], 3);
 
-            // Store feedback in the history array
+            // Update score
+            score -= penalty;
+
+            // Voeg poging toe aan de historiek
             if (attempts <= 10)
             {
+                Historiek[attempts - 1, 0] = Kleur1;
+                Historiek[attempts - 1, 1] = Kleur2;
+                Historiek[attempts - 1, 2] = Kleur3;
+                Historiek[attempts - 1, 3] = Kleur4;
                 Historiek[attempts - 1, 4] = feedback;
             }
 
-            // Update the ListBox with the history
+            // Update de ListBox
             ListBoxHistoriek.Items.Clear();
             for (int i = 0; i < attempts; i++)
             {
                 string feedbackString = $"{Historiek[i, 0]}, {Historiek[i, 1]}, {Historiek[i, 2]}, {Historiek[i, 3]} -> {Historiek[i, 4]}";
                 ListBoxHistoriek.Items.Add(feedbackString);
             }
+
+            // Toon de score in een Label
+            ScoreLabel.Content = $"Score: {score}";
         }
 
-        private void CheckColor(System.Windows.Controls.Label label, string selectedColor, int position)
+
+        private int CheckColorAndCalculatePenalty(System.Windows.Controls.Label label, string selectedColor, int position)
         {
             if (selectedColor == generatedCode[position])
             {
                 label.BorderBrush = new SolidColorBrush(Colors.DarkRed);
-                feedback += "R ";
+                feedback += "J "; // Correct kleur en positie
                 label.BorderThickness = new Thickness(3);
+                return 0; // 0 strafpunten
             }
             else if (generatedCode.Contains(selectedColor))
             {
                 label.BorderBrush = new SolidColorBrush(Colors.Wheat);
-                feedback += "W ";
+                feedback += "FP "; // Correct kleur, verkeerde positie
                 label.BorderThickness = new Thickness(3);
+                return 1; // 1 strafpunt
             }
             else
             {
                 label.BorderBrush = Brushes.Transparent;
-                feedback += "/ ";
+                feedback += "F "; // Onjuiste kleur
                 label.BorderThickness = new Thickness(0);
+                return 2; // 2 strafpunten
             }
         }
         private void stopcountdown()
