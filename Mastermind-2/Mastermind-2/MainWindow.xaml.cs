@@ -36,7 +36,7 @@ namespace Mastermind_PE
             InitializeComponent();
             GenerateRandomCode();
             OpvullenComboBoxes();
-            stopcountdown();
+            
             timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(1);
             timer.Tick += startcountdown;
@@ -45,6 +45,12 @@ namespace Mastermind_PE
         {
             elapsedTime = DateTime.Now - clicked;
             timerTextBox.Text = $"{elapsedTime.Seconds.ToString()} ";
+            if (elapsedTime.Seconds >= 10)
+            {
+                timer.Stop();
+               
+                attempts++;
+            }
         }
 
 
@@ -103,17 +109,10 @@ namespace Mastermind_PE
             timer.Start();
             clicked = DateTime.Now;
 
-            if (attempts >= 10)
-            {
-                timer.Stop();
-                MessageBox.Show("Je hebt 10 pogingen gebruikt! Spel voorbij.");
-                Close();
-            }
-
-            string Kleur1 = ComboBox1.SelectedItem.ToString();
-            string Kleur2 = ComboBox2.SelectedItem.ToString();
-            string Kleur3 = ComboBox3.SelectedItem.ToString();
-            string Kleur4 = ComboBox4.SelectedItem.ToString();
+            string Kleur1 = ComboBox1.SelectedItem?.ToString();
+            string Kleur2 = ComboBox2.SelectedItem?.ToString();
+            string Kleur3 = ComboBox3.SelectedItem?.ToString();
+            string Kleur4 = ComboBox4.SelectedItem?.ToString();
 
             // Reset feedback en score reductie
             feedback = "";
@@ -156,6 +155,32 @@ namespace Mastermind_PE
 
             // Toon de score in een Label
             ScoreLabel.Content = $"Score: {score}";
+
+            // Controleer of het spel moet eindigen
+            if (feedback.Contains("J J J J")) // Code gekraakt
+            {
+                timer.Stop();
+                if (MessageBox.Show("Gefeliciteerd! Je hebt de code gekraakt!\nWil je opnieuw spelen?", "Spel gewonnen", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    ResetGame();
+                }
+                else
+                {
+                    Close();
+                }
+            }
+            else if (attempts >= 10) // Maximaal aantal pogingen bereikt
+            {
+                timer.Stop();
+                if (MessageBox.Show($"Helaas! Je hebt de code niet gekraakt.\nDe juiste code was: {string.Join(", ", generatedCode)}\nWil je opnieuw spelen?", "Spel verloren", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    ResetGame();
+                }
+                else
+                {
+                    Close();
+                }
+            }
         }
 
 
@@ -183,16 +208,44 @@ namespace Mastermind_PE
                 return 2; // 2 strafpunten
             }
         }
-        private void stopcountdown()
+        
+        private void ResetGame()
         {
+            // Reset score en pogingen
+            score = 100;
+            attempts = 0;
+            feedback = "";
 
-            double time = elapsedTime.Seconds;
-            if (time >= 10)
+            // Genereer een nieuwe code
+            GenerateRandomCode();
+
+            // Wis de historiek
+            ListBoxHistoriek.Items.Clear();
+            for (int i = 0; i < 10; i++)
             {
-                timer.Stop();
-                attempts++;
+                for (int j = 0; j < 5; j++)
+                {
+                    Historiek[i, j] = null;
+                }
             }
 
+            // Reset labels en comboboxes
+            Label1.BorderBrush = Brushes.Transparent;
+            Label2.BorderBrush = Brushes.Transparent;
+            Label3.BorderBrush = Brushes.Transparent;
+            Label4.BorderBrush = Brushes.Transparent;
+
+            ComboBox1.SelectedItem = null;
+            ComboBox2.SelectedItem = null;
+            ComboBox3.SelectedItem = null;
+            ComboBox4.SelectedItem = null;
+
+            // Reset score label
+            ScoreLabel.Content = "Score: 100";
+
+            // Herstart timer
+            timerTextBox.Text = "";
+            timer.Stop();
         }
 
     }
