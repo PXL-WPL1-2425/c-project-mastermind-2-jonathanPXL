@@ -53,6 +53,22 @@ namespace Mastermind_PE
             }
         }
 
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            // Voorkom dat het spel zomaar wordt gesloten
+            var result = MessageBox.Show("Weet je zeker dat je de applicatie wilt sluiten?",
+                                          "Bevestig afsluiten",
+                                          MessageBoxButton.YesNo,
+                                          MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.No)
+            {
+                // Annuleer het afsluiten
+                e.Cancel = true;
+            }
+        }
 
 
 
@@ -65,7 +81,7 @@ namespace Mastermind_PE
             Random random = new Random();
             string[] Colors = { "Rood", "Geel", "Oranje", "Wit", "Groen", "Blauw" };
             generatedCode = Enumerable.Range(0, 4).Select(_ => Colors[random.Next(Colors.Length)]).ToArray();
-            this.Title = $"MasterMind ({string.Join(",", generatedCode)}), Poging: "; // Toon de code in de titel voor debugging
+            this.Title = $"MasterMind ({string.Join(",", generatedCode)}), Poging: "; 
         }
 
         private void OpvullenComboBoxes()
